@@ -3,17 +3,27 @@ const express = require('express')
 const NotesService = require('./notes-service')
 const notesRouter = express.Router()
 const jsonParser = express.json()
+const xss = require('xss')
+
+const serializeNote = note => ({
+    id: note.id,
+    name: xss(note.name),
+    modified: note.modified,
+    folder_id: note.folder_id,
+    content: xss(note.content)
+  })
 
 notesRouter
   .route('/')
   .get((req, res, next) => {
     NotesService.getAllnotes(req.app.get('db'))
       .then(notes => {
-        res.json(notes.map(NotesService.serializeNote))
+        res.json(notes.map(serializeNote))
       })
       .catch(next)
   })
   .post(jsonParser, (req, res, next) => {
+      
     const { name, folder_id, content, modified } = req.body
     const newNote = { name, folder_id, content }
 
@@ -46,25 +56,30 @@ notesRouter
 notesRouter
   .route('/:note_id')
   .all((req, res, next) => {
+   
     NotesService.getById(
       req.app.get('db'),
       req.params.note_id
     )
       .then(note => {
+        (note)
         if (!note) {
           return res.status(404).json({
             error: { message: `Note not found` }
           })
         }
         res.note = note
+        console.log(note)
         next()
       })
       .catch(next)
   })
   .get((req, res, next) => {
+    console.log(res.note)
     res.json(serializeNote(res.note))
   })
   .delete((req, res, next) => {
+    console.log(req)
     NotesService.deleteNote(
       req.app.get('db'),
       req.params.note_id
