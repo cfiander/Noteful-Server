@@ -69,17 +69,16 @@ notesRouter
           })
         }
         res.note = note
-        console.log(note)
+        
         next()
       })
       .catch(next)
   })
   .get((req, res, next) => {
-    console.log(res.note)
     res.json(serializeNote(res.note))
   })
   .delete((req, res, next) => {
-    console.log(req)
+    
     NotesService.deleteNote(
       req.app.get('db'),
       req.params.note_id
@@ -90,8 +89,9 @@ notesRouter
       .catch(next)
   })
   .patch(jsonParser, (req, res, next) => {
-    const { name, content } = req.body
-    const changes = { name, content }
+    const { name, content, modified } = req.body
+    const changes = { name, content, modified }
+    console.log(req.params.note_id)
 
     const numberOfValues = Object.values(changes).filter(Boolean).length
     if (numberOfValues === 0) {
